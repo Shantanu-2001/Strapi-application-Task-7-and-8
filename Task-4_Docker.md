@@ -49,7 +49,7 @@ Deploying apps was error-prone because environments differed.
 <br>
 
 # **2. Virtual Machines vs Docker**
-
+![Alt Text](<img width="1100" height="730" alt="image" src="https://github.com/user-attachments/assets/3e1ceb8a-afa6-4c41-85d1-b97c666df0fd" />)
 ### **A. Virtual Machines (Traditional Virtualization)**
 
 * Requires a **hypervisor** (VMware, VirtualBox, Hyper-V)
