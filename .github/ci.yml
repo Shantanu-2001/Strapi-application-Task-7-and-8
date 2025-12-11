@@ -1,9 +1,8 @@
-name: CI - Build & Push to ECR
+name: CI - Build & Push to ECR (strapi-repo-shantanu)
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
 
 permissions:
   contents: read
@@ -18,9 +17,11 @@ jobs:
   build-and-push:
     runs-on: ubuntu-latest
     outputs:
-      image_uri: ${{ steps.set-output.outputs.image_uri }}
+      image_uri_sha: ${{ steps.set-output.outputs.image_uri_sha }}
+      image_uri_latest: ${{ steps.set-output.outputs.image_uri_latest }}
+
     steps:
-      - name: Checkout code
+      - name: Checkout repo
         uses: actions/checkout@v4
 
       - name: Configure AWS credentials
@@ -30,19 +31,14 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Login to Amazon ECR
+      - name: Login to ECR
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Set vars
+      - name: Set short SHA
         id: vars
-        run: |
-          sha_short=${GITHUB_SHA::7}
-          echo "sha_short=$sha_short" >> $GITHUB_OUTPUT
-          # Build final ECR URI
-          ecr_uri="${{ env.ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:${sha_short}"
-          echo "ecr_uri=$ecr_uri" >> $GITHUB_OUTPUT
+        run: echo "sha_short=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
 
-      - name: Build and push image
+      - name: Build and push image to ECR
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -52,9 +48,13 @@ jobs:
             ${{ env.ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:${{ steps.vars.outputs.sha_short }}
             ${{ env.ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:latest
 
-      - name: Set output image_uri
+      - name: Set outputs
         id: set-output
         run: |
-          uri="${{ env.ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:${{ steps.vars.outputs.sha_short }}"
-          echo "image_uri=${uri}" >> $GITHUB_OUTPUT
-          echo "Image pushed: ${uri}"
+          uri_sha="${{ env.ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:${{ steps.vars.outputs.sha_short }}"
+          uri_latest="${{ env.ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:latest"
+          echo "image_uri_sha=${uri_sha}" >> $GITHUB_OUTPUT
+          echo "image_uri_latest=${uri_latest}" >> $GITHUB_OUTPUT
+          echo "Pushed: ${uri_sha}"
+          echo "Pushed: ${uri_latest}"
+
