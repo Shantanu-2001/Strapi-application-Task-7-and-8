@@ -154,7 +154,7 @@ resource "aws_db_instance" "strapi_rds" {
 }
 
 # ============================================================
-# USER DATA (UPDATED: ADMIN_JWT_SECRET ADDED)
+# USER DATA — STRAPI PRODUCTION SAFE
 # ============================================================
 
 locals {
@@ -176,6 +176,7 @@ locals {
 
     docker run -d -p 1337:1337 \
       --name strapi \
+      -e NODE_ENV=production \
       -e DATABASE_CLIENT=postgres \
       -e DATABASE_HOST=${aws_db_instance.strapi_rds.address} \
       -e DATABASE_PORT=5432 \
@@ -184,7 +185,10 @@ locals {
       -e DATABASE_PASSWORD=strapi123 \
       -e DATABASE_SSL=true \
       -e DATABASE_SSL__REJECT_UNAUTHORIZED=false \
-      -e ADMIN_JWT_SECRET=my-super-secret-admin-jwt-123456789 \
+      -e APP_KEYS=8f93kd92kd02kd9f,ks9d8s7f7sdf9s8d,29dkd9f8d7s6f5s4,9s8d7f6s5d4f3s2 \
+      -e API_TOKEN_SALT=api-token-salt-123456 \
+      -e JWT_SECRET=jwt-secret-123456 \
+      -e ADMIN_JWT_SECRET=admin-jwt-secret-123456 \
       -e HOST=0.0.0.0 \
       -e PORT=1337 \
       ${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.aws_region}.amazonaws.com/strapi-repo-shantanu:latest
