@@ -1,4 +1,4 @@
-name: CD - Deploy to ECS Fargate
+name: CD - Deploy to ECS Fargate (Manual)
 
 on:
   workflow_dispatch:
@@ -13,6 +13,8 @@ jobs:
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.0
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -21,21 +23,27 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Download image URI artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: image-uri
-
-      - name: Load image URI
+      # ✅ CRITICAL STEP
+      - name: Fetch latest image from ECR
+        id: ecr
         run: |
-          IMAGE_URI=$(cat image_uri.txt)
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+
+          IMAGE_TAG=$(aws ecr describe-images \
+            --repository-name ${{ secrets.ECR_REPOSITORY }} \
+            --query 'sort_by(imageDetails,& imagePushedAt)[-1].imageTags[0]' \
+            --output text)
+
+          IMAGE_URI=$ACCOUNT_ID.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:$IMAGE_TAG
+
           echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+          echo "Using image: $IMAGE_URI"
 
       - name: Terraform Init
         working-directory: terraform
-        run: terraform init
+        run: terraform init -input=false
 
-      - name: Terraform Apply (Deploy New Image)
+      - name: Terraform Apply (Deploy new image)
         working-directory: terraform
         run: |
           terraform apply -auto-approve \
