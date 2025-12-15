@@ -9,7 +9,7 @@ terraform {
   required_version = ">= 1.3.0"
 
   backend "s3" {
-    bucket = "shantanu-rana-terraform-state-1"
+    bucket = "shantanu-terraform-state-1"
     key    = "terraform/ecs-fargate.tfstate"
     region = "ap-south-1"
   }
