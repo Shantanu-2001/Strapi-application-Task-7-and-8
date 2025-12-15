@@ -2,10 +2,6 @@ name: CD - Deploy to ECS Fargate
 
 on:
   workflow_dispatch:
-    inputs:
-      image_uri:
-        description: "ECR image URI from CI"
-        required: true
 
 jobs:
   deploy:
@@ -25,13 +21,22 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
+      - name: Download image URI artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: image-uri
+
+      - name: Load image URI
+        run: |
+          IMAGE_URI=$(cat image_uri.txt)
+          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+
       - name: Terraform Init
         working-directory: terraform
         run: terraform init
 
-      - name: Terraform Apply (Update ECS Task)
+      - name: Terraform Apply (Deploy New Image)
         working-directory: terraform
         run: |
           terraform apply -auto-approve \
-            -var="docker_image=${{ github.event.inputs.image_uri }}"
-
+            -var="docker_image=$IMAGE_URI"
