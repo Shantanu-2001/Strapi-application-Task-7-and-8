@@ -4,7 +4,7 @@ resource "aws_db_subnet_group" "strapi_db_subnet_group" {
 }
 
 resource "aws_security_group" "strapi_rds_sg" {
-  name   = "strapi-rds-sg-shantanu"
+  name   = "strapi-rds-sg"
   vpc_id = data.aws_vpc.default.id
 
   ingress {
