@@ -7,7 +7,7 @@ on:
 
 env:
   AWS_REGION: ap-south-1
-  ECR_REPOSITORY: strapi
+  ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
 
 jobs:
   build:
@@ -27,10 +27,6 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      # 🔍 IMPORTANT (debug – keep for now)
-      - name: Verify AWS identity
-        run: aws sts get-caller-identity
-
       - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v1
 
@@ -43,8 +39,6 @@ jobs:
           IMAGE_URI=$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG
           IMAGE_URI_LATEST=$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:latest
 
-          echo "Building image: $IMAGE_URI"
-
           docker build -t $IMAGE_URI .
           docker tag $IMAGE_URI $IMAGE_URI_LATEST
 
@@ -52,4 +46,3 @@ jobs:
           docker push $IMAGE_URI_LATEST
 
           echo "image_uri=$IMAGE_URI" >> $GITHUB_OUTPUT
-
