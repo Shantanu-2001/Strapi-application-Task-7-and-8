@@ -41,7 +41,6 @@ data "aws_subnets" "default" {
 # =========================================================
 # IAM — ECS ROLES
 # =========================================================
-
 resource "aws_iam_role" "ecs_task_execution_role" {
   name = "strapi-ecs-task-execution-role"
 
@@ -177,7 +176,7 @@ resource "aws_db_instance" "strapi_rds" {
 }
 
 # =========================================================
-# ECS TASK DEFINITION
+# ECS TASK DEFINITION  ✅ FIXED
 # =========================================================
 resource "aws_ecs_task_definition" "strapi" {
   family                   = "strapi-task"
@@ -202,6 +201,14 @@ resource "aws_ecs_task_definition" "strapi" {
       { name = "NODE_ENV", value = "production" },
       { name = "HOST", value = "0.0.0.0" },
       { name = "PORT", value = "1337" },
+
+      # -------- REQUIRED STRAPI SECRETS --------
+      { name = "APP_KEYS", value = "key1,key2,key3,key4" },
+      { name = "API_TOKEN_SALT", value = "api_token_salt_123456" },
+      { name = "ADMIN_JWT_SECRET", value = "admin_jwt_secret_123456" },
+      { name = "JWT_SECRET", value = "jwt_secret_123456" },
+
+      # -------- DATABASE --------
       { name = "DATABASE_CLIENT", value = "postgres" },
       { name = "DATABASE_HOST", value = aws_db_instance.strapi_rds.address },
       { name = "DATABASE_PORT", value = "5432" },
