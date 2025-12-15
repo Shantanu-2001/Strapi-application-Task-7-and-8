@@ -1,9 +1,9 @@
 resource "aws_ecs_cluster" "strapi" {
-  name = "strapi-cluster"
+  name = "strapi-cluster-Shantanu"
 }
 
 resource "aws_security_group" "ecs_sg" {
-  name   = "strapi-ecs-sg"
+  name   = "strapi-ecs-sg-Shantanu"
   vpc_id = data.aws_vpc.default.id
 
   ingress {
