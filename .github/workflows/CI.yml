@@ -1,20 +1,20 @@
-name: CI - Build & Push to ECR
+name: CI - Build & Push to ECR (strapi-repo-shantanu)
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
 
 env:
-  AWS_REGION: ap-south-1
-  ECR_REPOSITORY: strapi-repo-shantanu
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
+  ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
 
 jobs:
-  build:
+  build-and-push:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout repo
         uses: actions/checkout@v4
 
       - name: Configure AWS credentials
@@ -24,23 +24,20 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Login to Amazon ECR
+      - name: Login to ECR
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Build, tag & push image
-        run: |
-          IMAGE_TAG=${GITHUB_SHA::7}
-          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+      # ✅ THIS STEP WAS MISSING
+      - name: Set short SHA
+        id: vars
+        run: echo "sha_short=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
 
-          IMAGE_URI=$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG
-
-          docker build -t $IMAGE_URI .
-          docker push $IMAGE_URI
-
-          echo $IMAGE_URI > image_uri.txt
-
-      - name: Upload image URI artifact
-        uses: actions/upload-artifact@v4
+      - name: Build and push image to ECR
+        uses: docker/build-push-action@v5
         with:
-          name: image-uri
-          path: image_uri.txt
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: |
+            ${{ env.ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:${{ steps.vars.outputs.sha_short }}
+            ${{ env.ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:latest
