@@ -8,10 +8,10 @@ resource "aws_security_group" "strapi_rds_sg" {
   vpc_id = data.aws_vpc.default.id
 
   ingress {
-    from_port       = 5432
-    to_port         = 5432
-    protocol        = "tcp"
-    security_groups = [aws_security_group.ecs_sg.id]
+    from_port                = 5432
+    to_port                  = 5432
+    protocol                 = "tcp"
+    source_security_group_id = aws_security_group.ecs_sg.id
   }
 
   egress {
