@@ -1,40 +1,3 @@
-# =========================
-# ECS Cluster
-# =========================
-resource "aws_ecs_cluster" "strapi" {
-  name = "strapi-cluster-shantanu"
-
-  setting {
-    name  = "containerInsights"
-    value = "enabled"
-  }
-}
-
-# =========================
-# Security Group for ECS
-# =========================
-resource "aws_security_group" "ecs_sg" {
-  name   = "strapi-ecs-sg-shantanu"
-  vpc_id = data.aws_vpc.default.id
-
-  ingress {
-    from_port   = 1337
-    to_port     = 1337
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-}
-
-# =========================
-# ECS Task Definition
-# =========================
 resource "aws_ecs_task_definition" "strapi" {
   family                   = "strapi-task"
   requires_compatibilities = ["FARGATE"]
@@ -42,8 +5,8 @@ resource "aws_ecs_task_definition" "strapi" {
   cpu                      = "512"
   memory                   = "1024"
 
-  execution_role_arn = var.ecs_execution_role_arn
-  task_role_arn      = var.ecs_execution_role_arn
+  execution_role_arn = aws_iam_role.ecs_task_execution_role.arn
+  task_role_arn      = aws_iam_role.ecs_task_role.arn
 
   container_definitions = jsonencode([
     {
@@ -87,25 +50,3 @@ resource "aws_ecs_task_definition" "strapi" {
     }
   ])
 }
-
-# =========================
-# ECS Service
-# =========================
-resource "aws_ecs_service" "strapi" {
-  name            = "strapi-service"
-  cluster         = aws_ecs_cluster.strapi.id
-  task_definition = aws_ecs_task_definition.strapi.arn
-  desired_count   = 1
-  launch_type     = "FARGATE"
-
-  network_configuration {
-    subnets          = data.aws_subnets.default.ids
-    security_groups  = [aws_security_group.ecs_sg.id]
-    assign_public_ip = true
-  }
-
-  depends_on = [
-    aws_ecs_task_definition.strapi
-  ]
-}
-
