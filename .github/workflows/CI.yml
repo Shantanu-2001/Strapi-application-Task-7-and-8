@@ -27,7 +27,7 @@ jobs:
       - name: Login to ECR
         uses: aws-actions/amazon-ecr-login@v1
 
-      # ✅ THIS STEP WAS MISSING
+      #  THIS STEP WAS MISSING
       - name: Set short SHA
         id: vars
         run: echo "sha_short=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
