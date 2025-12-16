@@ -184,7 +184,7 @@ resource "aws_ecs_task_definition" "strapi" {
         { name = "DATABASE_USERNAME", value = "strapi" },
         { name = "DATABASE_PASSWORD", value = "strapi123" },
 
-        # 🔴 CRITICAL FIX (THIS STOPS THE CRASH)
+        #  CRITICAL FIX (THIS STOPS THE CRASH)
         { name = "DATABASE_SSL", value = "true" },
         { name = "DATABASE_SSL__REJECT_UNAUTHORIZED", value = "false" },
 
