@@ -110,7 +110,7 @@ resource "aws_security_group" "ecs_sg" {
 # CLOUDWATCH LOG GROUP
 # =========================
 resource "aws_cloudwatch_log_group" "strapi" {
-  name              = "/ecs/strapi"
+  name              = "/ecs/strapi-shantanu"
   retention_in_days = 7
 }
 
@@ -198,7 +198,7 @@ resource "aws_ecs_task_definition" "strapi" {
         options = {
           awslogs-group         = aws_cloudwatch_log_group.strapi.name
           awslogs-region        = var.aws_region
-          awslogs-stream-prefix = "ecs/strapi"
+          awslogs-stream-prefix = "ecs/strapi-shantanu"
         }
       }
     }
