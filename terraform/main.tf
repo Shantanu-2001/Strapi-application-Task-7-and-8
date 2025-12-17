@@ -73,7 +73,7 @@ resource "aws_iam_role" "ecs_task_role" {
 }
 
 # =========================
-# ECS CLUSTER (Metrics Enabled)
+# ECS CLUSTER
 # =========================
 resource "aws_ecs_cluster" "strapi" {
   name = "strapi-cluster-shantanu"
@@ -85,7 +85,7 @@ resource "aws_ecs_cluster" "strapi" {
 }
 
 # =========================
-# ECS SECURITY GROUP
+# SECURITY GROUP (ECS)
 # =========================
 resource "aws_security_group" "ecs_sg" {
   name   = "shantanu-strapi-ecs-sg"
@@ -227,86 +227,76 @@ resource "aws_ecs_service" "strapi" {
 }
 
 # =========================
-# CLOUDWATCH DASHBOARD (OPTIONAL – TASK 8)
+# CLOUDWATCH DASHBOARD (OPTIONAL)
 # =========================
-resource "aws_cloudwatch_dashboard" "ecs_dashboard" {
+resource "aws_cloudwatch_dashboard" "strapi_dashboard" {
   dashboard_name = "strapi-ecs-dashboard-shantanu"
 
   dashboard_body = jsonencode({
     widgets = [
       {
         type = "metric"
-        x = 0
-        y = 0
         width = 12
         height = 6
         properties = {
-          view    = "timeSeries"
-          region  = var.aws_region
-          title   = "ECS CPU Utilization"
+          title = "ECS CPU Utilization"
           metrics = [
-            ["AWS/ECS", "CPUUtilization", "ClusterName", aws_ecs_cluster.strapi.name]
+            ["AWS/ECS", "CPUUtilization", "ClusterName", aws_ecs_cluster.strapi.name, "ServiceName", aws_ecs_service.strapi.name]
           ]
-          stat        = "Average"
-          period      = 300
-          annotations = {}
+          period = 300
+          stat   = "Average"
+          region = var.aws_region
         }
       },
       {
         type = "metric"
-        x = 12
-        y = 0
         width = 12
         height = 6
         properties = {
-          view    = "timeSeries"
-          region  = var.aws_region
-          title   = "ECS Memory Utilization"
+          title = "ECS Memory Utilization"
           metrics = [
-            ["AWS/ECS", "MemoryUtilization", "ClusterName", aws_ecs_cluster.strapi.name]
+            ["AWS/ECS", "MemoryUtilization", "ClusterName", aws_ecs_cluster.strapi.name, "ServiceName", aws_ecs_service.strapi.name]
           ]
-          stat        = "Average"
-          period      = 300
-          annotations = {}
-        }
-      },
-      {
-        type = "metric"
-        x = 0
-        y = 6
-        width = 12
-        height = 6
-        properties = {
-          view    = "timeSeries"
-          region  = var.aws_region
-          title   = "ECS Running Task Count"
-          metrics = [
-            ["AWS/ECS", "RunningTaskCount", "ClusterName", aws_ecs_cluster.strapi.name]
-          ]
-          stat        = "Average"
-          period      = 300
-          annotations = {}
-        }
-      },
-      {
-        type = "metric"
-        x = 12
-        y = 6
-        width = 12
-        height = 6
-        properties = {
-          view    = "timeSeries"
-          region  = var.aws_region
-          title   = "ECS Network In / Out"
-          metrics = [
-            ["AWS/ECS", "NetworkRxBytes", "ClusterName", aws_ecs_cluster.strapi.name],
-            ["AWS/ECS", "NetworkTxBytes", "ClusterName", aws_ecs_cluster.strapi.name]
-          ]
-          stat        = "Sum"
-          period      = 300
-          annotations = {}
+          period = 300
+          stat   = "Average"
+          region = var.aws_region
         }
       }
     ]
   })
+}
+
+# =========================
+# CLOUDWATCH ALARMS (OPTIONAL)
+# =========================
+resource "aws_cloudwatch_metric_alarm" "high_cpu" {
+  alarm_name          = "strapi-high-cpu"
+  comparison_operator = "GreaterThanThreshold"
+  threshold           = 70
+  evaluation_periods  = 2
+  period              = 300
+  statistic           = "Average"
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/ECS"
+
+  dimensions = {
+    ClusterName = aws_ecs_cluster.strapi.name
+    ServiceName = aws_ecs_service.strapi.name
+  }
+}
+
+resource "aws_cloudwatch_metric_alarm" "high_memory" {
+  alarm_name          = "strapi-high-memory"
+  comparison_operator = "GreaterThanThreshold"
+  threshold           = 75
+  evaluation_periods  = 2
+  period              = 300
+  statistic           = "Average"
+  metric_name         = "MemoryUtilization"
+  namespace           = "AWS/ECS"
+
+  dimensions = {
+    ClusterName = aws_ecs_cluster.strapi.name
+    ServiceName = aws_ecs_service.strapi.name
+  }
 }
