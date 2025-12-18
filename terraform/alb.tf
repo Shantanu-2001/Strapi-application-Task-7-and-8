@@ -21,6 +21,16 @@ resource "aws_security_group" "alb_sg" {
 }
 
 # =========================
+# SUBNETS FOR ALB (FIX)
+# =========================
+data "aws_subnets" "alb" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.default.id]
+  }
+}
+
+# =========================
 # APPLICATION LOAD BALANCER
 # =========================
 resource "aws_lb" "strapi" {
@@ -28,7 +38,9 @@ resource "aws_lb" "strapi" {
   load_balancer_type = "application"
   internal           = false
   security_groups    = [aws_security_group.alb_sg.id]
-  subnets            = data.aws_subnets.default.ids
+
+  # IMPORTANT: Only ONE subnet per AZ
+  subnets = slice(data.aws_subnets.alb.ids, 0, 2)
 }
 
 # =========================
