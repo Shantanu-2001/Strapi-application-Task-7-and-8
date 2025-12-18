@@ -221,25 +221,24 @@ resource "aws_ecs_service" "strapi" {
     assign_public_ip = true
   }
 
-  depends_on = [
-    aws_db_instance.strapi
-  ]
+  depends_on = [aws_db_instance.strapi]
 }
 
 # =========================
-# CLOUDWATCH DASHBOARD (OPTIONAL)
+# CLOUDWATCH DASHBOARD (UPDATED)
 # =========================
 resource "aws_cloudwatch_dashboard" "strapi_dashboard" {
   dashboard_name = "strapi-ecs-dashboard-shantanu"
 
   dashboard_body = jsonencode({
     widgets = [
+
       {
-        type = "metric"
-        width = 12
+        type   = "metric"
+        width  = 12
         height = 6
         properties = {
-          title = "ECS CPU Utilization"
+          title   = "ECS CPU Utilization"
           metrics = [
             ["AWS/ECS", "CPUUtilization", "ClusterName", aws_ecs_cluster.strapi.name, "ServiceName", aws_ecs_service.strapi.name]
           ]
@@ -248,12 +247,13 @@ resource "aws_cloudwatch_dashboard" "strapi_dashboard" {
           region = var.aws_region
         }
       },
+
       {
-        type = "metric"
-        width = 12
+        type   = "metric"
+        width  = 12
         height = 6
         properties = {
-          title = "ECS Memory Utilization"
+          title   = "ECS Memory Utilization"
           metrics = [
             ["AWS/ECS", "MemoryUtilization", "ClusterName", aws_ecs_cluster.strapi.name, "ServiceName", aws_ecs_service.strapi.name]
           ]
@@ -261,13 +261,45 @@ resource "aws_cloudwatch_dashboard" "strapi_dashboard" {
           stat   = "Average"
           region = var.aws_region
         }
+      },
+
+      {
+        type   = "metric"
+        width  = 12
+        height = 6
+        properties = {
+          title   = "ECS Running Task Count"
+          metrics = [
+            ["AWS/ECS", "RunningTaskCount", "ClusterName", aws_ecs_cluster.strapi.name, "ServiceName", aws_ecs_service.strapi.name]
+          ]
+          period = 300
+          stat   = "Average"
+          region = var.aws_region
+        }
+      },
+
+      {
+        type   = "metric"
+        width  = 12
+        height = 6
+        properties = {
+          title = "Network In / Out (Bytes)"
+          metrics = [
+            ["AWS/ECS", "NetworkRxBytes", "ClusterName", aws_ecs_cluster.strapi.name, "ServiceName", aws_ecs_service.strapi.name],
+            ["AWS/ECS", "NetworkTxBytes", "ClusterName", aws_ecs_cluster.strapi.name, "ServiceName", aws_ecs_service.strapi.name]
+          ]
+          period = 300
+          stat   = "Average"
+          region = var.aws_region
+        }
       }
+
     ]
   })
 }
 
 # =========================
-# CLOUDWATCH ALARMS (OPTIONAL)
+# CLOUDWATCH ALARMS
 # =========================
 resource "aws_cloudwatch_metric_alarm" "high_cpu" {
   alarm_name          = "strapi-high-cpu"
