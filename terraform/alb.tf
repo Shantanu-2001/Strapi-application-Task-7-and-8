@@ -2,7 +2,7 @@
 # ALB SECURITY GROUP
 # =========================
 resource "aws_security_group" "alb_sg" {
-  name   = "strapi-alb-sg"
+  name   = "strapi-alb-sg-shantanu"
   vpc_id = data.aws_vpc.default.id
 
   ingress {
@@ -35,7 +35,7 @@ resource "aws_lb" "strapi" {
 # TARGET GROUP (FARGATE → IP)
 # =========================
 resource "aws_lb_target_group" "strapi" {
-  name        = "strapi-tg"
+  name        = "strapi-tg-shantanu"
   port        = 1337
   protocol    = "HTTP"
   vpc_id      = data.aws_vpc.default.id
