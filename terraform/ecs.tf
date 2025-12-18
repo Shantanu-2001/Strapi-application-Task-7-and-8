@@ -37,14 +37,14 @@ resource "aws_ecs_task_definition" "strapi" {
 
       environment = [
         # =========================
-        # STRAPI ENV
+        # STRAPI CORE
         # =========================
         { name = "NODE_ENV", value = "production" },
         { name = "HOST", value = "0.0.0.0" },
         { name = "PORT", value = "1337" },
 
         # =========================
-        # DATABASE CONFIG
+        # DATABASE CONFIG (RDS POSTGRES)
         # =========================
         { name = "DATABASE_CLIENT", value = "postgres" },
         { name = "DATABASE_HOST", value = aws_db_instance.strapi.address },
@@ -53,8 +53,12 @@ resource "aws_ecs_task_definition" "strapi" {
         { name = "DATABASE_USERNAME", value = "strapi" },
         { name = "DATABASE_PASSWORD", value = "strapi123" },
 
+        #  REQUIRED FOR AWS RDS (SSL)
+        { name = "DATABASE_SSL", value = "true" },
+        { name = "DATABASE_SSL__REJECT_UNAUTHORIZED", value = "false" },
+
         # =========================
-        # STRAPI PRODUCTION SECRETS (REQUIRED)
+        # STRAPI PRODUCTION SECRETS (MANDATORY)
         # =========================
         { name = "APP_KEYS", value = "key1,key2,key3,key4" },
         { name = "API_TOKEN_SALT", value = "api_token_salt_123" },
