@@ -24,7 +24,7 @@ resource "aws_security_group" "alb_sg" {
 # APPLICATION LOAD BALANCER
 # =========================
 resource "aws_lb" "strapi" {
-  name               = "strapi-alb"
+  name               = "strapi-alb-shantanu"
   load_balancer_type = "application"
   internal           = false
   security_groups    = [aws_security_group.alb_sg.id]
