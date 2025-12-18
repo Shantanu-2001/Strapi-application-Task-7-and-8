@@ -44,7 +44,7 @@ resource "aws_ecs_task_definition" "strapi" {
         { name = "PORT", value = "1337" },
 
         # =========================
-        # DATABASE CONFIG (RDS POSTGRES)
+        # DATABASE CONFIG
         # =========================
         { name = "DATABASE_CLIENT", value = "postgres" },
         { name = "DATABASE_HOST", value = aws_db_instance.strapi.address },
@@ -53,12 +53,12 @@ resource "aws_ecs_task_definition" "strapi" {
         { name = "DATABASE_USERNAME", value = "strapi" },
         { name = "DATABASE_PASSWORD", value = "strapi123" },
 
-        #  REQUIRED FOR AWS RDS (SSL)
+        # REQUIRED FOR AWS RDS (SSL)
         { name = "DATABASE_SSL", value = "true" },
         { name = "DATABASE_SSL__REJECT_UNAUTHORIZED", value = "false" },
 
         # =========================
-        # STRAPI PRODUCTION SECRETS (MANDATORY)
+        # STRAPI PRODUCTION SECRETS
         # =========================
         { name = "APP_KEYS", value = "key1,key2,key3,key4" },
         { name = "API_TOKEN_SALT", value = "api_token_salt_123" },
@@ -79,7 +79,7 @@ resource "aws_ecs_task_definition" "strapi" {
 }
 
 # =========================
-# ECS SERVICE
+# ECS SERVICE (ALB ATTACHED)
 # =========================
 resource "aws_ecs_service" "strapi" {
   name            = "strapi-service"
@@ -88,13 +88,21 @@ resource "aws_ecs_service" "strapi" {
   desired_count   = 1
   launch_type     = "FARGATE"
 
+  # 🔗 ALB INTEGRATION (TASK-9)
+  load_balancer {
+    target_group_arn = aws_lb_target_group.strapi.arn
+    container_name   = "strapi"
+    container_port   = 1337
+  }
+
   network_configuration {
     subnets          = data.aws_subnets.default.ids
     security_groups  = [aws_security_group.ecs_sg.id]
-    assign_public_ip = true
+    assign_public_ip = true   # 👈 KEPT ON PURPOSE
   }
 
   depends_on = [
+    aws_lb_listener.http,
     aws_db_instance.strapi
   ]
 }
