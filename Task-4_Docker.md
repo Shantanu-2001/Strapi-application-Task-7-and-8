@@ -1,6 +1,6 @@
 # **Docker Deep-Dive Documentation **
 
-## **1. What Problem Does Docker Solve? **
+## **1. What Problem Does Docker Solve ? **
 
 Before Docker, developers relied largely on **Virtual Machines (VMs)** to isolate applications. But VMs are *heavy*, *slow*, and *resource-intensive*. Teams faced serious issues :
 
